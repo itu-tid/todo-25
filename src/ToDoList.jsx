@@ -39,9 +39,16 @@ export default function ToDoList({ name }) {
   }
 
   function handleCheckbox(element_id) {
-    console.log("toggling checkbox for " + element_id);
     let newList = list.map((e) => {
       return e.id == element_id ? { id: e.id, name: e.name, done: !e.done } : e;
+    });
+
+    setList(newList);
+  }
+
+  function deleteElement(element_id) {
+    let newList = list.filter((e) => {
+      return e.id != element_id;
     });
 
     setList(newList);
@@ -72,6 +79,13 @@ export default function ToDoList({ name }) {
               onClick={() => handleCheckbox(elem.id)}
             />
             {elem.done && "🎉"}
+            <a
+              href="#"
+              onClick={() => deleteElement(elem.id)}
+              style={{ color: "red" }}
+            >
+              x
+            </a>
           </li>
         ))}
       </ul>
