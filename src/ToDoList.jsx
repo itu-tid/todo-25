@@ -20,6 +20,7 @@ export default function ToDoList({ name }) {
     setInput(event.target.value);
   }
 
+  // Every time the list changes, we save it to local storage
   useEffect(() => {
     if (list != null) {
       saveListToLocalStorage(list);
@@ -38,6 +39,7 @@ export default function ToDoList({ name }) {
   }
 
   function handleCheckbox(element_id) {
+    console.log("toggling checkbox for " + element_id);
     let newList = list.map((e) => {
       return e.id == element_id ? { id: e.id, name: e.name, done: !e.done } : e;
     });
@@ -66,6 +68,7 @@ export default function ToDoList({ name }) {
             <input
               type="checkbox"
               value={elem.done}
+              checked={elem.done}
               onClick={() => handleCheckbox(elem.id)}
             />
             {elem.done && "🎉"}
@@ -75,7 +78,9 @@ export default function ToDoList({ name }) {
 
       <input type="text" onChange={handleInputChange} value={input}></input>
 
-      <button onClick={handleAddClick}>Add</button>
+      <button autoFocus={true} onClick={handleAddClick}>
+        Add
+      </button>
     </>
   );
 }
