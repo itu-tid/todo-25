@@ -36,6 +36,7 @@ export default function ToDoList({ name }) {
   function handleAddClick() {
     var newList = [...list, { id: uuidv4(), name: input, done: false }];
     setList(newList);
+    setInput("");
   }
 
   function handleCheckbox(element_id) {
@@ -44,6 +45,12 @@ export default function ToDoList({ name }) {
     });
 
     setList(newList);
+  }
+
+  function handleKeydownInInput(event) {
+    if (event.code == "Enter") {
+      handleAddClick();
+    }
   }
 
   function deleteElement(element_id) {
@@ -67,30 +74,47 @@ export default function ToDoList({ name }) {
 
       <ul>
         {list.map((elem) => (
-          <li
-            style={{ textDecoration: elem.done ? "line-through" : "" }}
-            key={elem.id}
-          >
-            {elem.name}
-            <input
-              type="checkbox"
-              value={elem.done}
-              checked={elem.done}
-              onClick={() => handleCheckbox(elem.id)}
-            />
-            {elem.done && "🎉"}
-            <a
-              href="#"
-              onClick={() => deleteElement(elem.id)}
-              style={{ color: "red" }}
+          <div>
+            <li
+              style={{
+                // marginBottom: "-0.8em",
+                listStyle: "none",
+              }}
+              key={elem.id}
             >
-              x
-            </a>
-          </li>
+              <input
+                type="checkbox"
+                value={elem.done}
+                checked={elem.done}
+                onClick={() => handleCheckbox(elem.id)}
+              />
+
+              {elem.name}
+              {elem.done && "🎉"}
+              <a
+                href="#"
+                onClick={() => deleteElement(elem.id)}
+                style={{
+                  color: "#a2a2a2cf",
+                  fontSize: "xx-small",
+                  // marginTop: "-1em",
+                  marginLeft: "2em",
+                  textDecoration: "none",
+                }}
+              >
+                (remove)
+              </a>
+            </li>
+          </div>
         ))}
       </ul>
 
-      <input type="text" onChange={handleInputChange} value={input}></input>
+      <input
+        type="text"
+        onChange={handleInputChange}
+        onKeyDown={handleKeydownInInput}
+        value={input}
+      ></input>
 
       <button autoFocus={true} onClick={handleAddClick}>
         Add
