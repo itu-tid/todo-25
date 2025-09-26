@@ -43,6 +43,31 @@ export default function ToDoList({ name }) {
     }
   }, [list]);
 
+  // Save timer state before page unload
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      // If there's an active timer, save its current state
+      if (activeElementId && list) {
+        const updatedList = list.map(e => {
+          if (e.id === activeElementId && e.startedAt) {
+            const sessionTime = Math.floor((Date.now() - e.startedAt) / 1000);
+            return {
+              ...e,
+              totalTime: (e.totalTime || 0) + sessionTime,
+              timer: (e.totalTime || 0) + sessionTime,
+              startedAt: null
+            };
+          }
+          return e;
+        });
+        localStorage.setItem(name, JSON.stringify(updatedList));
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [activeElementId, list, name]);
+
   function handleAddClick() {
     var newList = [...list, { id: uuidv4(), name: input, done: false }];
     setList(newList);
