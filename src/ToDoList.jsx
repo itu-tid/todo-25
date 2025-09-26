@@ -76,11 +76,21 @@ export default function ToDoList({ name }) {
     setList(newList);
   }
 
+  // ======
+  // TIMER
+  // ======
   function handleStartTimer(element_id) {
     console.log(element_id);
 
     let currentElement = list.find((e) => e.id === element_id);
     console.log(currentElement);
+
+    // Mark when this session started
+    setList((list) =>
+      list.map((e) =>
+        e.id === element_id ? { ...e, startedAt: Date.now() } : e
+      )
+    );
 
     setActiveElementId(currentElement.id);
     console.log("set active element id: " + currentElement.id);
@@ -91,13 +101,17 @@ export default function ToDoList({ name }) {
       intervalRef.current = null;
     }
 
-    // start new one
+    // start new one - now tracking actual elapsed time
     intervalRef.current = setInterval(() => {
       setList((list) => {
         let newList = list.map((e) => {
-          return e.id == element_id
-            ? { ...e, timer: e.timer !== undefined ? e.timer + 1 : 0 }
-            : e;
+          if (e.id === element_id && e.startedAt) {
+            const currentSessionTime = Math.floor(
+              (Date.now() - e.startedAt) / 1000
+            );
+            return { ...e, timer: (e.totalTime || 0) + currentSessionTime };
+          }
+          return e;
         });
         return newList;
       });
@@ -105,6 +119,22 @@ export default function ToDoList({ name }) {
   }
 
   function handleStopTimer(element_id) {
+    // Save accumulated time and clear startedAt
+    setList((list) =>
+      list.map((e) => {
+        if (e.id === element_id && e.startedAt) {
+          const sessionTime = Math.floor((Date.now() - e.startedAt) / 1000);
+          return {
+            ...e,
+            totalTime: (e.totalTime || 0) + sessionTime,
+            timer: (e.totalTime || 0) + sessionTime,
+            startedAt: null,
+          };
+        }
+        return e;
+      })
+    );
+
     setActiveElementId(null);
 
     if (intervalRef.current) {
@@ -176,7 +206,8 @@ export default function ToDoList({ name }) {
                     marginLeft: "1em",
                   }}
                 >
-                  ( {moment.duration(elem.timer, "seconds").humanize()})
+                  {moment.duration(elem.timer, "seconds").humanize()} (
+                  {elem.timer})
                 </span>
               )}
               {/* Remove */}
