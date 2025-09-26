@@ -50,8 +50,11 @@ export default function ToDoList({ name }) {
   }
 
   function handleCheckbox(element_id) {
+    if (activeElementId === element_id) {
+      handleStopTimer(element_id);
+    }
     let newList = list.map((e) => {
-      return e.id == element_id ? { id: e.id, name: e.name, done: !e.done } : e;
+      return e.id == element_id ? { ...e, done: !e.done } : e;
     });
 
     const sorted = newList.sort((a, b) => a.done - b.done);
@@ -131,7 +134,7 @@ export default function ToDoList({ name }) {
                   elem.id === activeElementId
                     ? "lightgoldenrodyellow"
                     : "white",
-                fontSize: elem.id === activeElementId ? "x-large" : "normal",
+                fontSize: elem.id === activeElementId ? "x-large" : "1em",
                 color: elem.id === activeElementId ? "violet" : "darkBlue",
                 fontWeight: elem.id === activeElementId ? "700" : "400",
               }}
@@ -164,6 +167,7 @@ export default function ToDoList({ name }) {
                 onChange={() => handleCheckbox(elem.id)}
               />
               {elem.name}
+              {elem.done && " 🎉"}
               {elem.timer && (
                 <span
                   style={{
@@ -172,11 +176,9 @@ export default function ToDoList({ name }) {
                     marginLeft: "1em",
                   }}
                 >
-                  ({elem.timer} /{" "}
-                  {moment.duration(elem.timer, "seconds").humanize()})
+                  ( {moment.duration(elem.timer, "seconds").humanize()})
                 </span>
               )}
-              {elem.done && "🎉"}
               {/* Remove */}
               <a
                 href="#"
@@ -202,9 +204,7 @@ export default function ToDoList({ name }) {
         value={input}
       ></input>
 
-      <button autoFocus={true} onClick={handleAddClick}>
-        Add
-      </button>
+      <button onClick={handleAddClick}>Add</button>
     </>
   );
 }
