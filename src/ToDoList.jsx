@@ -1,15 +1,25 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { Title, Wrapper } from "./components/Title";
+
+import { StopCircleOutlined } from "@mui/icons-material";
+import { PlayArrowOutlined } from "@mui/icons-material";
+import moment from "moment";
 
 export default function ToDoList({ name }) {
   const [list, setList] = useState(null);
   const [input, setInput] = useState("");
   const [totalTaskCount, setTotalTaskCount] = useState(0);
+  const [activeElementId, setActiveElementId] = useState();
+
+  const intervalRef = useRef(null);
 
   useEffect(() => {
     const data = localStorage.getItem(name);
-    setList(data ? JSON.parse(data) : []);
+    const listFromStorage = data ? JSON.parse(data) : [];
+    const sorted = listFromStorage.sort((a, b) => a.done - b.done);
+
+    setList(sorted);
   }, []);
 
   function saveListToLocalStorage(newList) {
@@ -44,7 +54,9 @@ export default function ToDoList({ name }) {
       return e.id == element_id ? { id: e.id, name: e.name, done: !e.done } : e;
     });
 
-    setList(newList);
+    const sorted = newList.sort((a, b) => a.done - b.done);
+
+    setList(sorted);
   }
 
   function handleKeydownInInput(event) {
@@ -59,6 +71,43 @@ export default function ToDoList({ name }) {
     });
 
     setList(newList);
+  }
+
+  function handleStartTimer(element_id) {
+    console.log(element_id);
+
+    let currentElement = list.find((e) => e.id === element_id);
+    console.log(currentElement);
+
+    setActiveElementId(currentElement.id);
+    console.log("set active element id: " + currentElement.id);
+
+    // clear previous timer
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+
+    // start new one
+    intervalRef.current = setInterval(() => {
+      setList((list) => {
+        let newList = list.map((e) => {
+          return e.id == element_id
+            ? { ...e, timer: e.timer !== undefined ? e.timer + 1 : 0 }
+            : e;
+        });
+        return newList;
+      });
+    }, 1000);
+  }
+
+  function handleStopTimer(element_id) {
+    setActiveElementId(null);
+
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
   }
 
   if (list === null) {
@@ -77,27 +126,64 @@ export default function ToDoList({ name }) {
           <div>
             <li
               style={{
-                // marginBottom: "-0.8em",
                 listStyle: "none",
+                backgroundColor:
+                  elem.id === activeElementId
+                    ? "lightgoldenrodyellow"
+                    : "white",
+                fontSize: elem.id === activeElementId ? "x-large" : "normal",
+                color: elem.id === activeElementId ? "violet" : "darkBlue",
+                fontWeight: elem.id === activeElementId ? "700" : "400",
               }}
               key={elem.id}
             >
+              &nbsp;
+              {!elem.done ? (
+                elem.id !== activeElementId ? (
+                  <PlayArrowOutlined
+                    onClick={() => handleStartTimer(elem.id)}
+                  ></PlayArrowOutlined>
+                ) : (
+                  <StopCircleOutlined
+                    onClick={() => handleStopTimer(elem.id)}
+                  ></StopCircleOutlined>
+                )
+              ) : (
+                <PlayArrowOutlined
+                  style={{
+                    visibility: "hidden",
+                  }}
+                ></PlayArrowOutlined>
+              )}
+              &nbsp;
+              {/* Checkbox */}
               <input
                 type="checkbox"
                 value={elem.done}
                 checked={elem.done}
-                onClick={() => handleCheckbox(elem.id)}
+                onChange={() => handleCheckbox(elem.id)}
               />
-
               {elem.name}
+              {elem.timer && (
+                <span
+                  style={{
+                    fontSize: "small",
+                    color: "green",
+                    marginLeft: "1em",
+                  }}
+                >
+                  ({elem.timer} /{" "}
+                  {moment.duration(elem.timer, "seconds").humanize()})
+                </span>
+              )}
               {elem.done && "🎉"}
+              {/* Remove */}
               <a
                 href="#"
                 onClick={() => deleteElement(elem.id)}
                 style={{
                   color: "#a2a2a2cf",
                   fontSize: "xx-small",
-                  // marginTop: "-1em",
                   marginLeft: "2em",
                   textDecoration: "none",
                 }}
