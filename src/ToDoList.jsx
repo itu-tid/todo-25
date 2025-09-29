@@ -94,10 +94,7 @@ export default function ToDoList({ name }) {
   // TIMER
   // ======
   function handleStartTimer(element_id) {
-    console.log(element_id);
-
     let currentElement = list.find((e) => e.id === element_id);
-    console.log(currentElement);
 
     // Mark when this session started
     setList((list) =>
@@ -107,7 +104,6 @@ export default function ToDoList({ name }) {
     );
 
     setActiveElementId(currentElement.id);
-    console.log("set active element id: " + currentElement.id);
 
     // clear previous timer
     if (intervalRef.current) {
@@ -175,7 +171,6 @@ export default function ToDoList({ name }) {
               }}
               key={elem.id}
             >
-              &nbsp;
               {!elem.done ? (
                 elem.id !== activeElementId ? (
                   <PlayArrowOutlined
@@ -193,8 +188,9 @@ export default function ToDoList({ name }) {
                   }}
                 ></PlayArrowOutlined>
               )}
-              &nbsp;
+
               {elem.name}
+
               {/* Checkbox */}
               <input
                 type="checkbox"
