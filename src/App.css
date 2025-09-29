@@ -12,3 +12,17 @@ h1 {
 ul {
   color: darkblue;
 }
+
+.non-highlighted-todo-item {
+  background-color: #ffffff;
+  font-size: 1em;
+  color: blue;
+  font-weight: 400;
+}
+
+.highlighted-todo-item {
+  background-color: lightgoldenrodyellow;
+  font-size: 2em;
+  color: #bf4f74;
+  font-weight: 700;
+}
