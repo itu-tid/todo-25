@@ -221,7 +221,7 @@ export default function ToDoList({ name }) {
                       <AccessTime
                         style={{
                           fontSize: "14px",
-                          transform: `rotate(${displayTime * 90}deg)`,
+                          transform: `rotate(${(displayTime % 4) * 90}deg)`,
                           transition: "transform 0.3s ease",
                         }}
                       />
