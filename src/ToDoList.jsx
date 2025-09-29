@@ -4,6 +4,7 @@ import { Title, Wrapper } from "./components/Title";
 
 import { StopCircleOutlined } from "@mui/icons-material";
 import { PlayArrowOutlined } from "@mui/icons-material";
+import { AccessTime } from "@mui/icons-material";
 import moment from "moment";
 
 export default function ToDoList({ name }) {
@@ -48,14 +49,14 @@ export default function ToDoList({ name }) {
     const handleBeforeUnload = () => {
       // If there's an active timer, save its current state
       if (activeElementId && list) {
-        const updatedList = list.map(e => {
+        const updatedList = list.map((e) => {
           if (e.id === activeElementId && e.startedAt) {
             const sessionTime = Math.floor((Date.now() - e.startedAt) / 1000);
             return {
               ...e,
               totalTime: (e.totalTime || 0) + sessionTime,
               timer: (e.totalTime || 0) + sessionTime,
-              startedAt: null
+              startedAt: null,
             };
           }
           return e;
@@ -64,8 +65,8 @@ export default function ToDoList({ name }) {
       }
     };
 
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
   }, [activeElementId, list, name]);
 
   function handleAddClick() {
@@ -214,6 +215,7 @@ export default function ToDoList({ name }) {
                 ></PlayArrowOutlined>
               )}
               &nbsp;
+              {elem.name}
               {/* Checkbox */}
               <input
                 type="checkbox"
@@ -221,7 +223,6 @@ export default function ToDoList({ name }) {
                 checked={elem.done}
                 onChange={() => handleCheckbox(elem.id)}
               />
-              {elem.name}
               {elem.done && " 🎉"}
               {elem.timer && (
                 <span
@@ -231,8 +232,16 @@ export default function ToDoList({ name }) {
                     marginLeft: "1em",
                   }}
                 >
-                  {moment.duration(elem.timer, "seconds").humanize()} (
-                  {elem.timer})
+                  {moment.duration(elem.timer, "seconds").humanize()}{" "}
+                  {elem.id === activeElementId && (
+                    <AccessTime
+                      style={{
+                        fontSize: "14px",
+                        transform: `rotate(${elem.timer * 90}deg)`,
+                        transition: "transform 0.3s ease",
+                      }}
+                    />
+                  )}
                 </span>
               )}
               {/* Remove */}
