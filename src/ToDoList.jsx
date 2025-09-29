@@ -50,13 +50,12 @@ export default function ToDoList({ name }) {
       // If there's an active timer, save its current state
       if (activeElementId && list) {
         const updatedList = list.map((e) => {
-          if (e.id === activeElementId && e.startedAt) {
-            const sessionTime = Math.floor((Date.now() - e.startedAt) / 1000);
+          if (e.id === activeElementId && e.currentSessionStart) {
+            const sessionTime = Math.floor((Date.now() - e.currentSessionStart) / 1000);
             return {
               ...e,
               totalTime: (e.totalTime || 0) + sessionTime,
-              timer: (e.totalTime || 0) + sessionTime,
-              startedAt: null,
+              currentSessionStart: null,
             };
           }
           return e;
@@ -114,7 +113,7 @@ export default function ToDoList({ name }) {
     // Mark when this session started
     setList((list) =>
       list.map((e) =>
-        e.id === element_id ? { ...e, startedAt: Date.now() } : e
+        e.id === element_id ? { ...e, currentSessionStart: Date.now() } : e
       )
     );
 
@@ -127,34 +126,23 @@ export default function ToDoList({ name }) {
       intervalRef.current = null;
     }
 
-    // start new one - now tracking actual elapsed time
+    // start new one - force re-render every second to update display
     intervalRef.current = setInterval(() => {
-      setList((list) => {
-        let newList = list.map((e) => {
-          if (e.id === element_id && e.startedAt) {
-            const currentSessionTime = Math.floor(
-              (Date.now() - e.startedAt) / 1000
-            );
-            return { ...e, timer: (e.totalTime || 0) + currentSessionTime };
-          }
-          return e;
-        });
-        return newList;
-      });
+      // Force a re-render by updating the list (without actually changing data)
+      setList((list) => [...list]);
     }, 1000);
   }
 
   function handleStopTimer(element_id) {
-    // Save accumulated time and clear startedAt
+    // Save accumulated time and clear currentSessionStart
     setList((list) =>
       list.map((e) => {
-        if (e.id === element_id && e.startedAt) {
-          const sessionTime = Math.floor((Date.now() - e.startedAt) / 1000);
+        if (e.id === element_id && e.currentSessionStart) {
+          const sessionTime = Math.floor((Date.now() - e.currentSessionStart) / 1000);
           return {
             ...e,
             totalTime: (e.totalTime || 0) + sessionTime,
-            timer: (e.totalTime || 0) + sessionTime,
-            startedAt: null,
+            currentSessionStart: null,
           };
         }
         return e;
@@ -224,26 +212,31 @@ export default function ToDoList({ name }) {
                 onChange={() => handleCheckbox(elem.id)}
               />
               {elem.done && " 🎉"}
-              {elem.timer && (
-                <span
-                  style={{
-                    fontSize: "small",
-                    color: "green",
-                    marginLeft: "1em",
-                  }}
-                >
-                  {moment.duration(elem.timer, "seconds").humanize()}{" "}
-                  {elem.id === activeElementId && (
-                    <AccessTime
-                      style={{
-                        fontSize: "14px",
-                        transform: `rotate(${elem.timer * 90}deg)`,
-                        transition: "transform 0.3s ease",
-                      }}
-                    />
-                  )}
-                </span>
-              )}
+              {(() => {
+                const displayTime = elem.currentSessionStart
+                  ? (elem.totalTime || 0) + Math.floor((Date.now() - elem.currentSessionStart) / 1000)
+                  : (elem.totalTime || 0);
+                return displayTime > 0 ? (
+                  <span
+                    style={{
+                      fontSize: "small",
+                      color: "green",
+                      marginLeft: "1em",
+                    }}
+                  >
+                    {moment.duration(displayTime, "seconds").humanize()}{" "}
+                    {elem.id === activeElementId && (
+                      <AccessTime
+                        style={{
+                          fontSize: "14px",
+                          transform: `rotate(${displayTime * 90}deg)`,
+                          transition: "transform 0.3s ease",
+                        }}
+                      />
+                    )}
+                  </span>
+                ) : null;
+              })()}
               {/* Remove */}
               <a
                 href="#"
