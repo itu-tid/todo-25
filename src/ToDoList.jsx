@@ -90,9 +90,10 @@ export default function ToDoList({ name }) {
     setList(newList);
   }
 
-  // ======
-  // TIMER
-  // ======
+  // ==============================================================================
+  //                                    TIMER
+  // ==============================================================================
+
   function handleStartTimer(element_id) {
     let currentElement = list.find((e) => e.id === element_id);
 
@@ -199,6 +200,7 @@ export default function ToDoList({ name }) {
                 onChange={() => handleCheckbox(elem.id)}
               />
               {elem.done && " 🎉"}
+
               {(() => {
                 const displayTime = elem.currentSessionStart
                   ? (elem.totalTime || 0) +
