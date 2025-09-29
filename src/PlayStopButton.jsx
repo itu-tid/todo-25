@@ -2,27 +2,25 @@ import { StopCircleOutlined } from "@mui/icons-material";
 import { PlayArrowOutlined } from "@mui/icons-material";
 
 export default function PlayStopButton({
-  element_id,
-  done,
-  active,
-  handleStartTimer,
-  handleStopTimer,
+  isHidden,
+  isPlaying,
+  onPlay,
+  onStop,
 }) {
-  return !done ? (
-    active ? (
+  if (isHidden) {
+    // render the button, but hidden - so it takes the same amount of place
+    return (
       <PlayArrowOutlined
-        onClick={() => handleStartTimer(element_id)}
+        style={{
+          visibility: "hidden",
+        }}
       ></PlayArrowOutlined>
-    ) : (
-      <StopCircleOutlined
-        onClick={() => handleStopTimer(element_id)}
-      ></StopCircleOutlined>
-    )
+    );
+  }
+
+  return isPlaying ? (
+    <StopCircleOutlined onClick={onStop}></StopCircleOutlined>
   ) : (
-    <PlayArrowOutlined
-      style={{
-        visibility: "hidden",
-      }}
-    ></PlayArrowOutlined>
+    <PlayArrowOutlined onClick={onPlay}></PlayArrowOutlined>
   );
 }
