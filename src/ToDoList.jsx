@@ -122,11 +122,11 @@ export default function ToDoList({ name }) {
     }, 1000);
   }
 
-  function handleStopTimer(element_id) {
+  function handleStopTimer(elementId) {
     // Save accumulated time and clear currentSessionStart
     setList((list) =>
       list.map((e) => {
-        if (e.id === element_id && e.currentSessionStart) {
+        if (e.id === elementId && e.currentSessionStart) {
           const sessionTime = Math.floor(
             (Date.now() - e.currentSessionStart) / 1000
           );
