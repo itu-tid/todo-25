@@ -47,26 +47,15 @@ export default function ToDoList({ name }) {
   // Save timer state before page unload
   useEffect(() => {
     const handleBeforeUnload = () => {
-      // If there's an active timer, save its current state
-      if (activeElementId && list) {
-        const updatedList = list.map((e) => {
-          if (e.id === activeElementId && e.currentSessionStart) {
-            const sessionTime = Math.floor((Date.now() - e.currentSessionStart) / 1000);
-            return {
-              ...e,
-              totalTime: (e.totalTime || 0) + sessionTime,
-              currentSessionStart: null,
-            };
-          }
-          return e;
-        });
-        localStorage.setItem(name, JSON.stringify(updatedList));
+      // If there's an active timer, stop it to save the accumulated time
+      if (activeElementId) {
+        handleStopTimer(activeElementId);
       }
     };
 
     window.addEventListener("beforeunload", handleBeforeUnload);
     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
-  }, [activeElementId, list, name]);
+  }, [activeElementId]);
 
   function handleAddClick() {
     var newList = [...list, { id: uuidv4(), name: input, done: false }];
@@ -138,7 +127,9 @@ export default function ToDoList({ name }) {
     setList((list) =>
       list.map((e) => {
         if (e.id === element_id && e.currentSessionStart) {
-          const sessionTime = Math.floor((Date.now() - e.currentSessionStart) / 1000);
+          const sessionTime = Math.floor(
+            (Date.now() - e.currentSessionStart) / 1000
+          );
           return {
             ...e,
             totalTime: (e.totalTime || 0) + sessionTime,
@@ -214,8 +205,9 @@ export default function ToDoList({ name }) {
               {elem.done && " 🎉"}
               {(() => {
                 const displayTime = elem.currentSessionStart
-                  ? (elem.totalTime || 0) + Math.floor((Date.now() - elem.currentSessionStart) / 1000)
-                  : (elem.totalTime || 0);
+                  ? (elem.totalTime || 0) +
+                    Math.floor((Date.now() - elem.currentSessionStart) / 1000)
+                  : elem.totalTime || 0;
                 return displayTime > 0 ? (
                   <span
                     style={{
