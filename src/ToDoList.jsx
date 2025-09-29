@@ -6,6 +6,7 @@ import { StopCircleOutlined } from "@mui/icons-material";
 import { PlayArrowOutlined } from "@mui/icons-material";
 import { AccessTime } from "@mui/icons-material";
 import moment from "moment";
+import ToDoItem from "./components/ToDoItem";
 
 export default function ToDoList({ name }) {
   const [list, setList] = useState(null);
@@ -159,19 +160,7 @@ export default function ToDoList({ name }) {
       <ul>
         {list.map((elem) => (
           <div>
-            <li
-              style={{
-                listStyle: "none",
-                backgroundColor:
-                  elem.id === activeElementId
-                    ? "lightgoldenrodyellow"
-                    : "white",
-                fontSize: elem.id === activeElementId ? "x-large" : "1em",
-                color: elem.id === activeElementId ? "violet" : "darkBlue",
-                fontWeight: elem.id === activeElementId ? "700" : "400",
-              }}
-              key={elem.id}
-            >
+            <ToDoItem highlight={elem.id == activeElementId} key={elem.id}>
               {!elem.done ? (
                 elem.id !== activeElementId ? (
                   <PlayArrowOutlined
@@ -214,7 +203,8 @@ export default function ToDoList({ name }) {
                       marginLeft: "1em",
                     }}
                   >
-                    {moment.duration(displayTime, "seconds").humanize()}{" "}
+                    {moment.duration(displayTime, "seconds").humanize()} (
+                    {displayTime}s)
                     {elem.id === activeElementId && (
                       <AccessTime
                         style={{
@@ -240,7 +230,7 @@ export default function ToDoList({ name }) {
               >
                 (remove)
               </a>
-            </li>
+            </ToDoItem>
           </div>
         ))}
       </ul>
