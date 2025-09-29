@@ -58,7 +58,7 @@ export default function ToDoList({ name }) {
   }, [activeElementId]);
 
   function handleAddClick() {
-    var newList = [...list, { id: uuidv4(), name: input, done: false }];
+    const newList = [...list, { id: uuidv4(), name: input, done: false }];
     setList(newList);
     setInput("");
   }
@@ -83,7 +83,7 @@ export default function ToDoList({ name }) {
   }
 
   function deleteElement(element_id) {
-    let newList = list.filter((e) => {
+    const newList = list.filter((e) => {
       return e.id != element_id;
     });
 
