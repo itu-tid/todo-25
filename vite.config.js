@@ -1,7 +1,19 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
 
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
-})
+
+  // tell vite that when we import parse, it should import the minified version
+  resolve: {
+    alias: {
+      parse: "parse/dist/parse.min.js",
+    },
+  },
+
+  // load parse faster during development time
+  optimizeDeps: {
+    include: ["parse"],
+  },
+});

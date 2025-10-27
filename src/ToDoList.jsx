@@ -6,6 +6,7 @@ import ToDoItem from "./components/ToDoItem";
 import PlayStopButton from "./PlayStopButton";
 import ItemDuration from "./ItemDuration";
 import RemoveItemButton from "./RemoveItemButton";
+import Parse from "parse";
 
 function totalTime(elem) {
   const time = elem.currentSessionStart
@@ -66,6 +67,21 @@ export default function ToDoList({ name }) {
   }, [activeElementId]);
 
   function handleAddClick() {
+    const TodoItem = Parse.Object.extend("TodoItem");
+    const newItem = new TodoItem();
+
+    newItem.set("name", input);
+    newItem.set("done", false);
+
+    newItem.save().then(
+      (newObj) => {
+        alert("saved a todo with id: " + newObj.id);
+      },
+      (error) => {
+        alert(error.message);
+      }
+    );
+
     const newList = [...list, { id: uuidv4(), name: input, done: false }];
     setList(newList);
     setInput("");
