@@ -5,14 +5,14 @@ import react from "@vitejs/plugin-react";
 export default defineConfig({
   plugins: [react()],
 
-  // tell vite that when we import parse, it should import the minified version
+  // Mircea: tell vite that when we import parse, it should import the minified version
   resolve: {
     alias: {
       parse: "parse/dist/parse.min.js",
     },
   },
 
-  // load parse faster during development time
+  // Mircea: load parse faster during development time
   optimizeDeps: {
     include: ["parse"],
   },
