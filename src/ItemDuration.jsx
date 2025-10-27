@@ -14,7 +14,6 @@ export default function ItemDuration({ displayTime, showAnimation }) {
         marginLeft: "1em",
       }}
     >
-      {moment.duration(displayTime, "seconds").humanize()} ({displayTime}s)
       {showAnimation && (
         <AccessTime
           style={{
@@ -24,6 +23,7 @@ export default function ItemDuration({ displayTime, showAnimation }) {
           }}
         />
       )}
+      {moment.duration(displayTime, "seconds").humanize()} ({displayTime}s)
     </span>
   );
 }
