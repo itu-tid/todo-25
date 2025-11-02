@@ -1,12 +1,19 @@
 import { useEffect, useState, useRef } from "react";
-import { v4 as uuidv4 } from "uuid";
-import { Title, Wrapper } from "./components/Title";
+import { Title, Wrapper } from "../Title";
 
-import ToDoItem from "./components/ToDoItem";
+import ToDoItem from "../TodoItem/ToDoItem";
 import PlayStopButton from "./PlayStopButton";
 import ItemDuration from "./ItemDuration";
 import RemoveItemButton from "./RemoveItemButton";
-import Parse from "parse";
+
+import {
+  fetchTodosByCategory,
+  createTodoItem,
+  updateTodoItem,
+  deleteTodoItem,
+  setDoneState,
+  updateTodoTime,
+} from "../../services/todoService";
 
 function totalTime(elem) {
   const time = elem.currentSessionStart
@@ -24,28 +31,25 @@ export default function ToDoList({ name }) {
 
   const intervalRef = useRef(null);
 
+  // Load todos from Parse on mount
   useEffect(() => {
-    const data = localStorage.getItem(name);
-    const listFromStorage = data ? JSON.parse(data) : [];
-    const sorted = listFromStorage.sort((a, b) => a.done - b.done);
+    const loadTodos = async () => {
+      try {
+        const todos = await fetchTodosByCategory(name);
+        const sorted = todos.sort((a, b) => a.done - b.done);
+        setList(sorted);
+      } catch (error) {
+        console.error("Error loading todos:", error);
+        setList([]);
+      }
+    };
 
-    setList(sorted);
-  }, []);
-
-  function saveListToLocalStorage(newList) {
-    localStorage.setItem(name, JSON.stringify(newList));
-  }
+    loadTodos();
+  }, [name]);
 
   function handleInputChange(event) {
     setInput(event.target.value);
   }
-
-  // Every time the list changes, we save it to local storage
-  useEffect(() => {
-    if (list != null) {
-      saveListToLocalStorage(list);
-    }
-  }, [list]);
 
   useEffect(() => {
     if (list !== null) {
@@ -66,38 +70,41 @@ export default function ToDoList({ name }) {
     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
   }, [activeElementId]);
 
-  function handleAddClick() {
-    const TodoItem = Parse.Object.extend("TodoItem");
-    const newItem = new TodoItem();
+  async function handleAddClick() {
+    if (!input.trim()) return;
 
-    newItem.set("name", input);
-    newItem.set("done", false);
-
-    newItem.save().then(
-      (newObj) => {
-        alert("saved a todo with id: " + newObj.id);
-      },
-      (error) => {
-        alert(error.message);
-      }
-    );
-
-    const newList = [...list, { id: uuidv4(), name: input, done: false }];
-    setList(newList);
-    setInput("");
+    try {
+      const newItem = await createTodoItem(input, name);
+      const newList = [...list, newItem];
+      const sorted = newList.sort((a, b) => a.done - b.done);
+      setList(sorted);
+      setInput("");
+    } catch (error) {
+      console.error("Error creating todo:", error);
+      alert("Failed to create todo: " + error.message);
+    }
   }
 
-  function handleCheckbox(element_id) {
+  async function handleCheckbox(element_id) {
     if (activeElementId === element_id) {
       handleStopTimer(element_id);
     }
-    let newList = list.map((e) => {
-      return e.id == element_id ? { ...e, done: !e.done } : e;
-    });
 
-    const sorted = newList.sort((a, b) => a.done - b.done);
+    const currentItem = list.find((e) => e.id === element_id);
+    if (!currentItem) return;
 
-    setList(sorted);
+    try {
+      await setDoneState(element_id, !currentItem.done);
+
+      let newList = list.map((e) => {
+        return e.id === element_id ? { ...e, done: !e.done } : e;
+      });
+
+      const sorted = newList.sort((a, b) => a.done - b.done);
+      setList(sorted);
+    } catch (error) {
+      console.error("Error setting done state:", error);
+    }
   }
 
   function handleKeydownInInput(event) {
@@ -106,12 +113,18 @@ export default function ToDoList({ name }) {
     }
   }
 
-  function deleteElement(element_id) {
-    const newList = list.filter((e) => {
-      return e.id != element_id;
-    });
+  async function deleteElement(element_id) {
+    try {
+      await deleteTodoItem(element_id);
 
-    setList(newList);
+      const newList = list.filter((e) => {
+        return e.id !== element_id;
+      });
+
+      setList(newList);
+    } catch (error) {
+      console.error("Error deleting todo:", error);
+    }
   }
 
   // ==============================================================================
@@ -143,25 +156,35 @@ export default function ToDoList({ name }) {
     }, 1000);
   }
 
-  function handleStopTimer(elementId) {
-    // Save accumulated time and clear currentSessionStart
-    setList((list) =>
-      list.map((e) => {
-        // map to save the current element duration
+  async function handleStopTimer(elementId) {
+    const currentItem = list.find((e) => e.id === elementId);
+    if (!currentItem || !currentItem.currentSessionStart) return;
 
-        if (e.id === elementId && e.currentSessionStart) {
-          const sessionTime = Math.floor(
-            (Date.now() - e.currentSessionStart) / 1000
-          );
-          return {
-            ...e,
-            totalTime: (e.totalTime || 0) + sessionTime,
-            currentSessionStart: null,
-          };
-        }
-        return e;
-      })
+    const sessionTime = Math.floor(
+      (Date.now() - currentItem.currentSessionStart) / 1000
     );
+    const newTotalTime = (currentItem.totalTime || 0) + sessionTime;
+
+    try {
+      // Save to Parse
+      await updateTodoTime(elementId, newTotalTime, null);
+
+      // Update local state
+      setList((list) =>
+        list.map((e) => {
+          if (e.id === elementId) {
+            return {
+              ...e,
+              totalTime: newTotalTime,
+              currentSessionStart: null,
+            };
+          }
+          return e;
+        })
+      );
+    } catch (error) {
+      console.error("Error stopping timer:", error);
+    }
 
     setActiveElementId(null);
 
@@ -207,7 +230,7 @@ export default function ToDoList({ name }) {
               showAnimation={elem.id === activeElementId}
             />
 
-            <RemoveItemButton onClick={() => deleteElement(elementId)} />
+            <RemoveItemButton onClick={() => deleteElement(elem.id)} />
           </ToDoItem>
         ))}
       </ul>
